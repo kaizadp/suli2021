@@ -1,0 +1,14 @@
+FTICR_ID,Core,Suction,Soil_Moisture,Rewetting,Amendments,Homogenization
+LIntCal_0_212,15,1.5,drought,groundw,control,Intact
+LIntCal_0_237,15,50,drought,groundw,control,Intact
+LIntCal_0_201,27,1.5,drought,groundw,control,Intact
+LIntCal_0_268,40,1.5,drought,groundw,control,Intact
+LIntCal_0_168,52,1.5,drought,groundw,control,Intact
+LIntCal_0_260,52,50,drought,groundw,control,Intact
+LIntCal_0_52,8,1.5,fm,groundw,control,Intact
+LIntCal_0_71,8,50,fm,groundw,control,Intact
+LIntCal_0_15,26,50,fm,groundw,control,Intact
+LIntCal_0_20,26,1.5,fm,groundw,control,Intact
+LIntCal_0_1,48,50,fm,groundw,control,Intact
+LIntCal_0_21,48,1.5,fm,groundw,control,Intact
+LIntCal_0_12,60,1.5,fm,groundw,control,Intact
