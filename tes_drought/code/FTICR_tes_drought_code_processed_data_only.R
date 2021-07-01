@@ -6,15 +6,15 @@ library(tidyverse)
 
   #Loading Files ----
 
-fticr_tes_drought_data = read.csv("tes_drought/data/fticr_data/fticr_data.csv")
+fticr_data = read.csv("tes_drought/data/fticr_data/fticr_data.csv")
 
-fticr_tes_drought_meta = read.csv("tes_drought/data/fticr_data/fticr_meta.csv")
+fticr_meta = read.csv("tes_drought/data/fticr_data/fticr_meta.csv")
 
 core_keys = read.csv("tes_drought/data/corekey.csv")
 
- #Renaming columns in the FTICR core_keys
+  #Renaming columns in the FTICR core_keys ----
 
-fticr_tes_drought_data_renamed = rename(fticr_tes_drought_data,
+fticr_data_renamed = rename(fticr_data,
        "DOC-001" = "Fansler_51618_DOC001_Alder_Inf_02Oct2020_300SA_IATp1_1_01_55581",
        "DOC-002" = "Fansler_51618_DOC002_Alder_Inf_02Oct2020_300SA_IATp1_1_01_55582",
        "DOC-003" = "Fansler_51618_DOC003_Alder_Inf_02Oct2020_300SA_IATp1_1_01_55583",
@@ -53,21 +53,9 @@ fticr_tes_drought_data_renamed = rename(fticr_tes_drought_data,
        "DOC-190" = "Fansler_DOC_190_SPE_18Dec20_Alder_300SA_p1_1_01_57112")
 
 
- #Merging fticr data and corekey ----
+  #fticr_tes_drought_meta processing ----
 
-merge(core_keys, fticr_tes_drought_data_renamed, by.x = "DOC-", by.y = "DOC-")
-
-
-  #fticr key cleaning(SKIPPED due to different column names) ----
-
-fticr_tes_drought_data_cleaned = fticr_tes_drought_data %>%
-  mutate(SampleAssignment = paste0(Suction, "-", Soil_Moisture, "-", Rewetting)) %>%
-  select(FTICR_ID, Core, Suction, Soil_Moisture, Rewetting, Amendments, SampleAssignment)
-
-
-  # fticr_tes_drought_meta processing ----
-
-meta = fticr_tes_drought_meta %>%
+meta = fticr_meta %>%
   
   filter(Mass>200 & Mass<900) %>%
   
@@ -115,29 +103,43 @@ mass_list =
 
   #fticr_tes_drought_data_long ----
 
-fticr_tes_drought_data_long_key = fticr_tes_drought_data %>%
-  filter(Mass %in% mass_list) %>%
-  pivot_longer(-Mass, names_to = "FTICR_ID", values_to = "intensity") %>%
-  mutate(presence = if_else(intensity>0, 1, 0)) %>%
-  filter(presence==1) %>%
-  left_join(select(meta, Mass, formula), by = "Mass") %>%
-  distinct(FTICR_ID, formula, presence) %>%
-  na.omit() %>%
-  group_by(formula) %>%
+fticr_data_long = 
+  fticr_data_renamed %>% 
+  filter(Mass %in% mass_list) %>% 
+  pivot_longer(-Mass,
+               names_to = "DOC_ID",
+               values_to = "intensity") %>% 
+  mutate(presence = if_else(intensity>0, 1, 0)) %>% 
+  filter(presence==1) %>% 
+  # add the molecular formula column
+  left_join(select(meta, Mass, formula), by = "Mass") %>% 
+  # some formulae have multiple m/z. drop the multiples
+  distinct(DOC_ID, formula, presence)
+
+  #Merging fticr data and corekey ----
+
+fticr_data_long_key =
+  fticr_data_long %>%
+  left_join(core_keys, by = "DOC_ID") %>%
+  group_by(DOC_ID, formula) %>%
   mutate(n = n())
 
-  # Rep Filter ----
+  #Rep Filter ----
 
-reps = fticr_tes_drought_data_long_key %>%
+reps = fticr_data_long_key %>%
+  ungroup() %>%
+  distinct(Site, DOC_ID) %>%
+  group_by(DOC_ID) %>%
   dplyr::summarise(reps = n())
 
-fticr_tes_drought_data_long_key2 = fticr_tes_drought_data_long_key %>%
-  left_join(reps, by = "formula") %>%
+fticr_data_long_key2 = fticr_data_long_key %>%
+  left_join(reps, by = "DOC_ID") %>%
   ungroup() %>%
   mutate(keep = n >= (2/3)*reps) %>%
   filter(keep)
 
-fticr_tes_drought_data_long_trt = fticr_tes_drought_data_long_key2 %>%
+fticr_data_long_trt = fticr_data_long_key2 %>%
+  group_by(DOC_ID, depth, Site, treatment) %>%
   distinct(formula, presence)
 
 meta_HCOC = meta %>%
@@ -146,10 +148,10 @@ meta_HCOC = meta %>%
 
   # Processed Data_Outputs ----
 
-write.csv(meta, "Processed Data/Processed_FTICR_DATA/fticr_tes_drought_processedmeta.csv", row.names = F)
+write.csv(meta, "tes_drought/data/Processed Data/Processed_FTICR_DATA/fticr_tes_drought_meta.csv", row.names = F)
 
-crunch::write.csv.gz(fticr_tes_drought_data_long_key, "Processed Data/Processed_FTICR_DATA/fticr_tes_drought_data_long_core.csv.gz", row.names = F, na="")
+crunch::write.csv.gz(fticr_data_long, "tes_drought/data/Processed Data/Processed_FTICR_DATA/fticr_tes_drought_data_long_core.csv.gz", row.names = F, na="")
 
-crunch::write.csv.gz(fticr_tes_drought_data_long_key2, "Processed Data/Processed_FTICR_DATA/fticr_tes_drought_data_long_key.csv.gz", row.names = F, na="")
+crunch::write.csv.gz(fticr_data_long_key2, "tes_drought/data/Processed Data/Processed_FTICR_DATA/fticr_tes_drought_data_long_key.csv.gz", row.names = F, na="")
 
-crunch::write.csv.gz(fticr_tes_drought_data_long_trt, "Processed Data/Processed_FTICR_DATA/fticr_tes_drought_data_long_trt.csv.gz", row.names = F, na="")
+crunch::write.csv.gz(fticr_data_long_trt, "tes_drought/data/Processed Data/Processed_FTICR_DATA/fticr_tes_drought_data_long_trt.csv.gz", row.names = F, na="")
