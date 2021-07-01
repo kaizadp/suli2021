@@ -1,3 +1,4 @@
+
 library(tidyverse)
 library(readxl)
 
@@ -5,28 +6,28 @@ library(readxl)
   #Clemente 2012 Bins ----
 
 bins_dat = 
-  read.delim("tes_drought/Clemente2012.txt", header = TRUE) %>% 
+  read.delim("tes_drought/data/Clemente2012.txt", header = TRUE) %>% 
   arrange(start) %>% 
   dplyr::mutate(number = row_number())
 
 
   #Input Directories ----
 
-tes_drought_SPECTRA_FILES = "tes_drought/data/nmr_data/spectra/"
-tes_drought_PEAKS_FILES = "tes_drought/data/nmr_data/peaks/"
+SPECTRA_FILES = "tes_drought/data/nmr_data/spectra/"
+PEAKS_FILES = "tes_drought/data/nmr_data/peaks/"
 
   #processing spectra data ----
 
-filePaths_spectra <- list.files(path = tes_drought_SPECTRA_FILES,pattern = "*.csv", full.names = TRUE)
+filePaths_spectra <- list.files(path = SPECTRA_FILES,pattern = "*.csv", full.names = TRUE)
 
-tes_drought_spectra_data <- do.call(rbind, lapply(filePaths_spectra, function(path) {
+spectra_data <- do.call(rbind, lapply(filePaths_spectra, function(path) {
   df <- read.table(path, header=FALSE, col.names = c("ppm", "intensity"))
   df[["source"]] <- rep(path, nrow(df))
   df}))
 
-tes_drought_spectra_processed = tes_drought_spectra_data %>% 
+spectra_processed = spectra_data %>% 
   filter(ppm >= 0 & ppm <= 10) %>% 
-  mutate(source = str_remove(source, paste0(tes_drought_SPECTRA_FILES, "/"))) %>% 
+  mutate(source = str_remove(source, paste0(SPECTRA_FILES, "/"))) %>% 
   mutate(source = str_remove(source, ".csv"))
 
   #Spectra Graph ----
@@ -78,7 +79,7 @@ gg_spectra = function(dat, LABEL_POSITION, mapping, STAGGER){
   
 }
 
-gg_spectra(dat = tes_drought_spectra_processed,
+gg_spectra(dat = spectra_processed,
            LABEL_POSITION = 4,
            aes(x = ppm, y = intensity, 
                group = source, color = source),
@@ -89,7 +90,7 @@ gg_spectra(dat = tes_drought_spectra_processed,
   #Relative Abundance ----
 
 ## import and combine all peaks data
-filePaths_peaks <- list.files(path = tes_drought_PEAKS_FILES,pattern = "*.csv", full.names = TRUE)
+filePaths_peaks <- list.files(path = PEAKS_FILES,pattern = "*.csv", full.names = TRUE)
 peaks_rawdat <- do.call(bind_rows, lapply(filePaths_peaks, function(path) {
   
   align_columns = function(path){
@@ -128,7 +129,7 @@ peaks_rawdat <- do.call(bind_rows, lapply(filePaths_peaks, function(path) {
 # DMSO_start = 2.25; DMSO_stop = 2.75
 
 ## process the peaks
-tes_drought_peaks_processed = 
+peaks_processed = 
   peaks_rawdat %>% 
   filter(ppm >=0 & ppm <= 10) %>% 
   filter(Intensity > 0) %>% 
@@ -138,20 +139,40 @@ tes_drought_peaks_processed =
   filter(!is.na(ppm)) %>% 
   # remove peaks with 0 intensity, and peaks flagged as weak 
   filter(!Flags=="Weak") %>% 
-  mutate(source = str_remove(source, paste0(tes_drought_PEAKS_FILES, "/"))) %>% 
+  mutate(source = str_remove(source, paste0(PEAKS_FILES, "/"))) %>% 
   mutate(source = str_remove(source, ".csv")) %>% 
   dplyr::select(-Obs)
 
+  #Renaming processed peak ----
+
+
+peaks_processed_renamed = rename(peaks_processed,
+                                 "DOC-074" = "tes_drought/data/nmr_data/peaks/074",
+                                 "DOC-079" = "tes_drought/data/nmr_data/peaks/079",
+                                 "DOC-081" = "tes_drought/data/nmr_data/peaks/081",
+                                 "DOC-178" = "tes_drought/data/nmr_data/peaks/178",
+                                 "DOC-179" = "tes_drought/data/nmr_data/peaks/179",
+                                 "DOC-180" = "tes_drought/data/nmr_data/peaks/180",
+                                 "DOC-185" = "tes_drought/data/nmr_data/peaks/185",
+                                 "DOC-186" = "tes_drought/data/nmr_data/peaks/186",
+                                 "DOC-187" = "tes_drought/data/nmr_data/peaks/187",
+                                 "DOC-181" = "tes_drought/data/nmr_data/peaks/181",
+                                 "DOC-182" = "tes_drought/data/nmr_data/peaks/182",
+                                 "DOC-183" = "tes_drought/data/nmr_data/peaks/183",
+                                 "DOC-188" = "tes_drought/data/nmr_data/peaks/188",
+                                 "DOC-189" = "tes_drought/data/nmr_data/peaks/189",
+                                 "DOC-190" = "tes_drought/data/nmr_data/peaks/190")
+
   ## ii. calculate relative abundances ----
 
-tes_drought_COREKEY = "tes_drought/data/corekey.csv"
+COREKEY = "tes_drought/data/corekey.csv"
 
-tes_drought_corekey = read.csv(tes_drought_COREKEY) %>% mutate(DOC_ID = as.character(DOC_ID))
+corekey = read.csv(COREKEY) %>% mutate(DOC_ID = as.character(DOC_ID))
 
 
-rel_abund_TD_cores1 = 
+rel_abund_cores1 = 
   # match the peaks with the bins
-  subset(merge(tes_drought_peaks_processed, bins_dat), start <= ppm & ppm <= stop) %>% 
+  subset(merge(peaks_processed, bins_dat), start <= ppm & ppm <= stop) %>% 
   rename(DOC_ID = source) %>% 
   group_by(DOC_ID, group) %>% 
   # remove tthe oalkyl group because that's where the water peak lies
@@ -162,14 +183,19 @@ rel_abund_TD_cores1 =
                 relabund = round((area/total)*100,2)) %>% 
   dplyr::select(DOC_ID, group, relabund) %>% 
   replace(is.na(.), 0) %>% 
-  left_join(tes_drought_corekey, by = "DOC_ID")
+  left_join(corekey, by = "DOC_ID")
 
-RA_TD_wide1 = 
-  rel_abund_TD_cores1 %>% 
+
+
+
+
+
+RA_wide1 = 
+  rel_abund_cores1 %>% 
   pivot_wider(names_from = "group", values_from = "relabund")
 
-RA_TD_cores = 
-  RA_TD_wide1 %>% 
+RA_cores = 
+  RA_wide1 %>% 
   pivot_longer(where(is.numeric), values_to = "relabund", names_to = "group") %>% 
   replace_na(list(relabund = 0))
 
