@@ -3,7 +3,7 @@
 library(dplyr)
 library(tidyr)
 
-RA_cores = read.csv("fticr_test_data2/Processed_Data2/fticr2_RA_cores.csv")
+RA_cores = read.csv("tes_drought/data/Processed Data/Processed_FTICR_DATA/fticr_tes_drought_RA_cores.csv")
 
   # STATS - Processing Data ----
 
@@ -36,30 +36,42 @@ library(ggbiplot)
 
 ggbiplot(pca_int,
          obs.scale = 1, var.scale = 1,
-         groups = as.character(grp$Suction), 
+         groups = as.character(grp$treatment), 
          ellipse = TRUE, 
          circle = FALSE, var.axes = TRUE, alpha = 0)+
   geom_point(
-    aes(shape = grp$Soil_Moisture, color = groups),
+    aes(shape = grp$depth, color = groups),
     size=2,stroke=1, alpha = 0.5)+
   theme_classic()
 
 ggbiplot(pca_int,
          obs.scale = 1, var.scale = 1,
-         groups = (grp$Soil_Moisture), 
+         groups = (grp$treatment), 
          ellipse = TRUE, 
          circle = FALSE, var.axes = TRUE, alpha = 0)+
   geom_point(
-    aes(shape = as.character(grp$Suction), color = groups),
+    aes(shape = as.character(grp$Site), color = groups),
     size=2,stroke=1, alpha = 0.5)+
   theme_classic()
+
+
+ggbiplot(pca_int,
+         obs.scale = 1, var.scale = 1,
+         groups = (grp$depth), 
+         ellipse = TRUE, 
+         circle = FALSE, var.axes = TRUE, alpha = 0)+
+  geom_point(
+    aes(shape = as.character(grp$Site), color = groups),
+    size=2,stroke=1, alpha = 0.5)+
+  theme_classic()
+
 
   # STATS - PERMONVA ----
 
 library(vegan)
 
 adonis(RA_wide %>% dplyr::select(where(is.numeric)) ~
-         Suction + Soil_Moisture + Suction:Soil_Moisture, 
+         treatment + Site + depth + treatment:Site + treatment:depth + Site:depth, 
        data = RA_wide)
 
 
@@ -68,12 +80,12 @@ adonis(RA_wide %>% dplyr::select(where(is.numeric)) ~
 
 library(tidyverse)
 
-data2_long_trt = read.csv("fticr_test_data2/Processed_Data2/fticr_data2_long_trt.csv.gz")
-meta2 = read.csv("fticr_test_data2/Processed_Data2/fticr_meta2.csv")
-meta_hcoc = meta2 %>%
+data_long_trt = read.csv("tes_drought/data/Processed Data/Processed_FTICR_DATA/fticr_tes_drought_data_long_trt.csv.gz")
+meta = read.csv("tes_drought/data/Processed Data/Processed_FTICR_DATA/fticr_tes_drought_meta.csv")
+meta_hcoc = meta %>%
   dplyr::select(formula, HC, OC)
 
-  # Grpahic Function ----
+  # Graphic Function ----
 
 gg_vankrev <- function(data, mapping){
   ggplot(data, mapping) +
@@ -90,40 +102,50 @@ gg_vankrev <- function(data, mapping){
 }
 
   # give us unique peaks in each suction type ----
-data2_unique =  
-  data2_long_trt %>%
-  group_by(formula, Soil_Moisture, Rewetting) %>% 
+
+data_counts =  
+  data_long_trt %>%
+  group_by(formula, depth, Site, treatment) %>% 
+  dplyr::mutate(count = n()) %>% 
+  left_join(meta_hcoc)
+
+  # compare treatment ----
+
+data_treatment=  
+  data_long_trt %>%
+  group_by(formula, depth, Site) %>% 
+  dplyr::mutate(count = n()) %>% 
+  left_join(meta_hcoc)
+
+
+common_treatment = data_treatment %>%
+  filter(count > 1) %>%
+  distinct(formula, depth, Site, count, HC, OC)
+
+gg_treatment = gg_vankrev(data_treatment,
+                       aes(x = OC, y = HC, color = Site))+
+  facet_wrap(~treatment)+
+  labs(title = "Common Peaks")+
+  theme_classic()
+
+gg_treatment
+
+  #compare Site ----
+
+data_Site =  
+  data_long_trt %>%
+  group_by(formula, depth, treatment) %>% 
   dplyr::mutate(count = n()) %>% 
   left_join(meta_hcoc)# %>% filter(n==1)
 
-  # compare drought vs. field moist ----
-# calculate unique peaks in drought and fm for each suction
+  #compare depth
 
-data2_unique_moisture=  
-  data2_long_trt %>%
-  group_by(formula, Suction, Rewetting) %>% 
+data_depth=  
+  data_long_trt %>%
+  group_by(formula, Site, treatment) %>% 
   dplyr::mutate(count = n()) %>% 
   left_join(meta_hcoc)# %>% filter(n==1)
 
-
-data2_common_moisture = data2_unique_moisture %>%
-  filter(count == 2) %>%
-  distinct(formula, Suction, Rewetting, count, HC, OC)
-
-data2_uniquepeaks_moisture = data2_unique_moisture %>%
-  filter(count == 1)
-
-gg_unique = gg_vankrev(data2_uniquepeaks_moisture,
-                       aes(x = OC, y = HC, color = Soil_Moisture))+
-  facet_wrap(~Suction)+
-  labs(title = "Unique peaks")+
-  theme_classic()
-
-gg_common = gg_vankrev(data2_common_moisture,
-                       aes(x = OC, y = HC))+
-  facet_wrap(~Suction)+
-  labs(title = "Common peaks")+
-  theme_classic()
 
 # Combine Common and Unique Graphs into One
 

@@ -17,7 +17,7 @@ RA_cores = fticr_data_key %>%
   dplyr::summarise(abund = sum(presence)) %>%
   filter(!is.na(class)) %>%
   ungroup %>%
-  group_by(Site, DOC_ID) %>%
+  group_by(DOC_ID) %>%
   dplyr::mutate(total = sum(abund), relabund = round((abund/total)*100,2))
 
   # Calculating Mean RA ----

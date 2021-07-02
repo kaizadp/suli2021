@@ -121,19 +121,19 @@ fticr_data_long =
 fticr_data_long_key =
   fticr_data_long %>%
   left_join(core_keys, by = "DOC_ID") %>%
-  group_by(DOC_ID, formula) %>%
+  group_by(depth, Site, treatment, formula) %>%
   mutate(n = n())
 
   #Rep Filter ----
 
 reps = fticr_data_long_key %>%
   ungroup() %>%
-  distinct(Site, DOC_ID) %>%
-  group_by(DOC_ID) %>%
+  distinct(DOC_ID, depth, Site, treatment) %>%
+  group_by(depth, Site, treatment) %>%
   dplyr::summarise(reps = n())
 
 fticr_data_long_key2 = fticr_data_long_key %>%
-  left_join(reps, by = "DOC_ID") %>%
+  left_join(reps) %>%
   ungroup() %>%
   mutate(keep = n >= (2/3)*reps) %>%
   filter(keep)

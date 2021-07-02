@@ -20,14 +20,11 @@ gg_vankrev <- function(data,mapping){
 }
 
 
-  # Loading Files ---- 
+  # Loading Files ----
 
-#(need to change)
+data_long_trt = read.csv("tes_drought/data/Processed Data/Processed_FTICR_DATA/fticr_tes_drought_data_long_trt.csv.gz")
 
-data_long_trt = read.csv("fticr_test_data2/Processed_Data2/fticr_data2_long_trt.csv.gz")
-
-meta = read.csv("fticr_test_data2/Processed_Data2/fticr_meta2.csv")
-
+meta = read.csv("tes_drought/data/Processed Data/Processed_FTICR_DATA/fticr_tes_drought_meta.csv")
 
   # Processing Files for Plotting ----
 
@@ -40,36 +37,27 @@ meta_hcoc = meta %>%
 data_hcoc =
   data_long_trt %>%
   left_join(meta_hcoc) %>%
-  mutate(Suction = as.character(Suction))
+  mutate(DOC_ID = as.character(DOC_ID))
 
-gg_vankrev(data_hcoc, aes(x = OC, y = HC, color = Suction))+
+gg_vankrev(data_hcoc, aes(x = OC, y = HC, color = depth))+
+  facet_wrap(~treatment)+
+  facet_wrap(~Site)+
   theme_classic()
 
 
   # RA BAR Plotting ----
 
-RA = read.csv("fticr_test_data2/Processed_Data2/fticr2_RA_trt.csv")
+RA = read.csv("tes_drought/data/Processed Data/Processed_FTICR_DATA/fticr_tes_drought_RA_trt.csv")
 
 RA %>%
-  ggplot(aes(x = Suction, y = relabund2, fill = class))+
+  ggplot(aes(x = Site, y = relabund2, fill = class))+
   geom_bar(stat = "identity")+
-  theme_classic()
-
-## separate graph into panels
-RA %>%
-  ggplot(aes(x = as.character(Suction), y = relabund2, fill = class))+
-  geom_bar(stat = "identity")+
-  # panels based on soil moisture
-  facet_wrap(~Soil_Moisture)+
+  facet_wrap(~treatment)+
   theme_classic()
 
 RA %>%
-  ggplot(aes(x = Soil_Moisture, y = relabund2, fill = class))+
+  ggplot(aes(x = depth, y = relabund2, fill = class))+
   geom_bar(stat = "identity")+
-  # panels based on suction
-  # better to compare moisture types within each suction
-  facet_wrap(~Suction)+
+  facet_wrap(~treatment)+
   theme_classic()
-
-
 
