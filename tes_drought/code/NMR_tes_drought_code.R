@@ -141,27 +141,9 @@ peaks_processed =
   filter(!Flags=="Weak") %>% 
   mutate(source = str_remove(source, paste0(PEAKS_FILES, "/"))) %>% 
   mutate(source = str_remove(source, ".csv")) %>% 
-  dplyr::select(-Obs)
-
-  #Renaming processed peak ----
-
-
-peaks_processed_renamed = rename(peaks_processed,
-                                 "DOC-074" = "tes_drought/data/nmr_data/peaks/074",
-                                 "DOC-079" = "tes_drought/data/nmr_data/peaks/079",
-                                 "DOC-081" = "tes_drought/data/nmr_data/peaks/081",
-                                 "DOC-178" = "tes_drought/data/nmr_data/peaks/178",
-                                 "DOC-179" = "tes_drought/data/nmr_data/peaks/179",
-                                 "DOC-180" = "tes_drought/data/nmr_data/peaks/180",
-                                 "DOC-185" = "tes_drought/data/nmr_data/peaks/185",
-                                 "DOC-186" = "tes_drought/data/nmr_data/peaks/186",
-                                 "DOC-187" = "tes_drought/data/nmr_data/peaks/187",
-                                 "DOC-181" = "tes_drought/data/nmr_data/peaks/181",
-                                 "DOC-182" = "tes_drought/data/nmr_data/peaks/182",
-                                 "DOC-183" = "tes_drought/data/nmr_data/peaks/183",
-                                 "DOC-188" = "tes_drought/data/nmr_data/peaks/188",
-                                 "DOC-189" = "tes_drought/data/nmr_data/peaks/189",
-                                 "DOC-190" = "tes_drought/data/nmr_data/peaks/190")
+  dplyr::select(-Obs) %>% 
+  # create a new column DOC_ID, which has the format: DOC-xxx
+  mutate(DOC_ID = paste0("DOC-", source))
 
   ## ii. calculate relative abundances ----
 
@@ -173,7 +155,7 @@ corekey = read.csv(COREKEY) %>% mutate(DOC_ID = as.character(DOC_ID))
 rel_abund_cores1 = 
   # match the peaks with the bins
   subset(merge(peaks_processed, bins_dat), start <= ppm & ppm <= stop) %>% 
-  rename(DOC_ID = source) %>% 
+  # rename(DOC_ID = source) %>% 
   group_by(DOC_ID, group) %>% 
   # remove tthe oalkyl group because that's where the water peak lies
   filter(group != "oalkyl") %>% 
