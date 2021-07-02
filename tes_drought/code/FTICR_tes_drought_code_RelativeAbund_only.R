@@ -23,9 +23,9 @@ RA_cores = fticr_data_key %>%
   # Calculating Mean RA ----
 
 RA_trt = RA_cores %>%
-  group_by(DOC_ID, depth, Site, treatment, class) %>%
-  dplyr::summarize(relabund2 = mean(relabund), 
-                   
+  group_by(depth, Site, treatment, class) %>%
+  dplyr::summarize(relabund2 = mean(relabund),
+
                    se = sd(relabund/sqrt(n())),
                    
                    relative_abundance = paste(relabund2, "\u00b1", se))
