@@ -139,7 +139,7 @@ peaks_processed =
   filter(!is.na(ppm)) %>% 
   # remove peaks with 0 intensity, and peaks flagged as weak 
   filter(!Flags=="Weak") %>% 
-  mutate(source = str_remove(source, paste0(PEAKS_FILES, "/"))) %>% 
+  mutate(source = str_remove(source, PEAKS_FILES)) %>% 
   mutate(source = str_remove(source, ".csv")) %>% 
   dplyr::select(-Obs) %>% 
   # create a new column DOC_ID, which has the format: DOC-xxx
