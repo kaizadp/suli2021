@@ -172,19 +172,19 @@ rel_abund_cores1 =
 
 
 
-RA_wide1 = 
+rel_abund_wide1 = 
   rel_abund_cores1 %>% 
   pivot_wider(names_from = "group", values_from = "relabund")
 
-RA_cores = 
-  RA_wide1 %>% 
+relabund_cores = 
+  rel_abund_wide1 %>% 
   pivot_longer(where(is.numeric), values_to = "relabund", names_to = "group") %>% 
   replace_na(list(relabund = 0))
 
 
 ## iii. make summary and summary table ----
-RA_TD_summary = 
-  RA_TD_cores %>%
+relabund_summary = 
+  relabund_cores %>%
   group_by(group, treatment) %>% 
   dplyr::summarize(relabund_mean = round(mean(relabund),2),
                    relabund_se = round(sd(relabund, na.rm = T)/sqrt(n()), 2))
@@ -195,4 +195,69 @@ relabund_summarytable =
          relabund = str_remove_all(relabund, " \u00b1 NA"))
 
 print(relabund_summarytable)
+
+
+## iv. plot relative abundances ----
+relabund_bar = 
+  relabund_summary %>% 
+  ggplot(aes(x = treatment, y = relabund_mean, fill = group))+
+  geom_bar(stat = "identity")+
+  #    facet_grid(~ treatment)+
+  theme_classic()+
+  NULL
+
+print(relabund_bar)
+
+#
+# STEP 6: statistics ------------------------------------------------------
+## i. PERMANOVA ----
+library(vegan)
+
+relabund_wide = 
+  relabund_cores %>% 
+  ungroup() %>% 
+  pivot_wider(names_from = group, values_from = relabund)
+
+(permanova_tzero = 
+    adonis(relabund_wide %>% 
+             dplyr::select(where(is.numeric))  ~ 
+             treatment,
+           data = relabund_wide))
+
+#
+## ii. PCA ----
+# devtools::install_github("miraKlein/ggbiplot")
+library(ggbiplot)
+
+## compute PCA
+relabund_pca=
+  relabund_wide %>% 
+  ungroup %>% 
+  dplyr::select(-1)
+
+num = 
+  relabund_pca %>% 
+  dplyr::select(c(aliphatic1, aliphatic2, aromatic, alphah, amide))
+
+grp = 
+  relabund_pca %>% 
+  dplyr::select(-c(aliphatic1, aliphatic2, aromatic, alphah, amide)) %>% 
+  dplyr::mutate(row = row_number())
+
+pca_int = prcomp(num, scale. = T)
+
+
+## PCA plot
+gg_pca = 
+  ggbiplot(pca_int, obs.scale = 1, var.scale = 1,
+           groups = as.character(grp$treatment), 
+           ellipse = TRUE, circle = FALSE, var.axes = TRUE, alpha = 0) +
+  geom_point(size=2,stroke=1, alpha = 0.5,
+             aes(shape = groups,
+                 color = groups))+
+  theme_classic()+
+  NULL
+
+print(gg_pca)
+
 
