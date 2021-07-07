@@ -249,13 +249,16 @@ RA = read.csv("tes_drought/data/Processed Data/Processed_FTICR_DATA/fticr_tes_dr
 RA %>%
   ggplot(aes(x = Site, y = relabund2, fill = class))+
   geom_bar(stat = "identity")+
-  facet_wrap(~treatment)+
+  facet_wrap(~treatment + depth)+
   theme_classic()
 
 RA %>%
+  # reorder treatments
+  mutate(treatment = factor(treatment, levels = c("timezero", "drought"))) %>% 
   ggplot(aes(x = depth, y = relabund2, fill = class))+
   geom_bar(stat = "identity")+
-  facet_wrap(~treatment)+
+  #facet_wrap(~treatment + Site)+
+  facet_grid(Site ~ treatment)+
   theme_classic()
 
 
