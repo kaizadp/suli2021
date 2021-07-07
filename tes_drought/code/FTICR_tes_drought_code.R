@@ -237,8 +237,15 @@ data_hcoc =
   mutate(DOC_ID = as.character(DOC_ID))
 
 gg_vankrev(data_hcoc, aes(x = OC, y = HC, color = depth))+
-  facet_wrap(~treatment)+
-  facet_wrap(~Site)+
+  facet_grid(Site ~ treatment)+
+  theme_classic()
+
+gg_vankrev(data_hcoc, aes(x = OC, y = HC, color = treatment))+
+  facet_grid(Site ~ depth)+
+  theme_classic()
+
+gg_vankrev(data_hcoc, aes(x = OC, y = HC, color = Site))+
+  facet_grid(depth ~ treatment)+
   theme_classic()
 
 
@@ -389,8 +396,8 @@ common_treatment = data_treatment %>%
   distinct(formula, depth, Site, count, HC, OC)
 
 gg_treatment = gg_vankrev(data_treatment,
-                          aes(x = OC, y = HC, color = Site))+
-  facet_wrap(~treatment)+
+                          aes(x = OC, y = HC, color = treatment))+
+  facet_wrap(~Site + depth)+
   labs(title = "Common Peaks")+
   theme_classic()
 
