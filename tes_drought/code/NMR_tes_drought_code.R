@@ -97,6 +97,7 @@ peaks_rawdat <- do.call(bind_rows, lapply(filePaths_peaks, function(path) {
     # Step 1. import file. 
     # check.names=FALSE because columns have duplicate names, and we want to leave as is
     df <- read.csv(path, stringsAsFactors = FALSE, check.names = FALSE)
+    colnames(df)[1] = ""
     
     # Step 2. confirm that the data are in 9-column groups
     noname_cols <- which(names(df) == "")
