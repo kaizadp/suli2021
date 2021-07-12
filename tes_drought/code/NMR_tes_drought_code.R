@@ -168,11 +168,6 @@ rel_abund_cores1 =
   replace(is.na(.), 0) %>% 
   left_join(corekey, by = "DOC_ID")
 
-
-
-
-
-
 rel_abund_wide1 = 
   rel_abund_cores1 %>% 
   pivot_wider(names_from = "group", values_from = "relabund")
@@ -183,10 +178,11 @@ relabund_cores =
   replace_na(list(relabund = 0))
 
 
-## iii. make summary and summary table ----
+  ## iii. make summary and summary table ----
+
 relabund_summary = 
   relabund_cores %>%
-  group_by(group, treatment) %>% 
+  group_by(depth, Site, treatment, group) %>% 
   dplyr::summarize(relabund_mean = round(mean(relabund),2),
                    relabund_se = round(sd(relabund, na.rm = T)/sqrt(n()), 2))
 
@@ -198,20 +194,22 @@ relabund_summarytable =
 print(relabund_summarytable)
 
 
-## iv. plot relative abundances ----
+  ## iv. plot relative abundances ----
+
 relabund_bar = 
   relabund_summary %>% 
   ggplot(aes(x = treatment, y = relabund_mean, fill = group))+
   geom_bar(stat = "identity")+
-  #    facet_grid(~ treatment)+
+  facet_grid(~ Site + depth)+
   theme_classic()+
   NULL
 
 print(relabund_bar)
 
 #
-# STEP 6: statistics ------------------------------------------------------
-## i. PERMANOVA ----
+  # STEP 6: statistics ------------------------------------------------------
+  ## i. PERMANOVA ----
+
 library(vegan)
 
 relabund_wide = 
@@ -225,8 +223,7 @@ relabund_wide =
              treatment,
            data = relabund_wide))
 
-#
-## ii. PCA ----
+  ## ii. PCA ----
 # devtools::install_github("miraKlein/ggbiplot")
 library(ggbiplot)
 

@@ -396,8 +396,8 @@ common_treatment = data_treatment %>%
   distinct(formula, depth, Site, count, HC, OC)
 
 gg_treatment = gg_vankrev(data_treatment,
-                          aes(x = OC, y = HC, color = treatment))+
-  facet_wrap(~Site + depth)+
+                          aes(x = OC, y = HC, color = depth))+
+  facet_wrap(~Site + treatment)+
   labs(title = "Common Peaks")+
   theme_classic()
 
