@@ -289,7 +289,7 @@ library(tidyr)
 RA_cores = read.csv("tes_drought/data/Processed Data/Processed_FTICR_DATA/fticr_tes_drought_RA_cores.csv")
 
 # STATS - Processing Data ----
-
+## full dataset
 RA_wide=
   RA_cores %>%
   ungroup %>% 
@@ -311,6 +311,27 @@ grp =
 
 pca_int = prcomp(num, scale. = T)
 plot(pca_int)
+
+## split by depth
+RA_wide_0to5 = 
+  RA_wide %>% 
+  filter(depth == "0-5cm")
+
+RA_wide_5toend = 
+  RA_wide %>% 
+  filter(depth == "5cm-end")
+
+
+## and then run PCA for each set
+num_0to5
+grp_0to5
+pca_int_0to5
+
+num_5toend
+grp_5toend
+pca_int_5toend
+  
+
 
 
 # STATS - Biplots ----
