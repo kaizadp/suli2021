@@ -1,7 +1,7 @@
 
 library(tidyverse)
 
-1. #PRocessing TES Drought Data 
+# 1. PRocessing TES Drought Data 
 
 #Loading Files ----
 
@@ -137,8 +137,10 @@ fticr_data_long_key2 = fticr_data_long_key %>%
   mutate(keep = n >= (2/3)*reps) %>%
   filter(keep)
 
+# create a "summary dataframe" of formulas present per treatment type
+# group by depth, Site, treatment
 fticr_data_long_trt = fticr_data_long_key2 %>%
-  group_by(DOC_ID, depth, Site, treatment) %>%
+  group_by(depth, Site, treatment) %>%
   distinct(formula, presence)
 
 meta_HCOC = meta %>%
