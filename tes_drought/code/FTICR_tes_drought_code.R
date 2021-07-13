@@ -365,21 +365,21 @@ ggbiplot(pca_int,
 
 ggbiplot(pca_int_0to5,
          obs.scale = 1, var.scale = 1,
-         groups = (grp$treatment), 
+         groups = (grp_0to5$treatment), 
          ellipse = TRUE, 
          circle = FALSE, var.axes = TRUE, alpha = 0)+
   geom_point(
-    aes(shape = as.character(grp$Site), color = groups),
+    aes(shape = as.character(grp_0to5$Site), color = groups),
     size=2,stroke=1, alpha = 0.5)+
   theme_classic()
 
 ggbiplot(pca_int_5toend,
          obs.scale = 1, var.scale = 1,
-         groups = (grp$treatment), 
+         groups = (grp_5toend$treatment), 
          ellipse = TRUE, 
          circle = FALSE, var.axes = TRUE, alpha = 0)+
   geom_point(
-    aes(shape = as.character(grp$Site), color = groups),
+    aes(shape = as.character(grp_5toend$Site), color = groups),
     size=2,stroke=1, alpha = 0.5)+
   theme_classic()
 
