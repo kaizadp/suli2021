@@ -269,6 +269,16 @@ RA %>%
   theme_classic()
 
 
+RA %>%
+  # reorder treatments
+  mutate(treatment = factor(treatment, levels = c("timezero", "drought"))) %>% 
+  ggplot(aes(x = treatment, y = relabund2, fill = class))+
+  geom_bar(stat = "identity")+
+  #facet_wrap(~treatment + Site)+
+  facet_grid(Site ~ depth)+
+  theme_classic()
+
+
 ###################################################################################
 
 # 4. STATS - Multivariate Graphs ----
@@ -338,6 +348,17 @@ ggbiplot(pca_int,
     size=2,stroke=1, alpha = 0.5)+
   theme_classic()
 
+ggbiplot(pca_int,
+         obs.scale = 1, var.scale = 1,
+         groups = (grp$treatment), 
+         ellipse = TRUE, 
+         circle = FALSE, var.axes = TRUE, alpha = 0)+
+  facet_grid(~depth)+
+  geom_point(
+    aes(shape = as.character(grp$Site)),
+    size=2,stroke=1, alpha = 0.5)+
+  theme_classic()
+
 
 # STATS - PERMONVA ----
 
@@ -396,8 +417,8 @@ common_treatment = data_treatment %>%
   distinct(formula, depth, Site, count, HC, OC)
 
 gg_treatment = gg_vankrev(data_treatment,
-                          aes(x = OC, y = HC, color = depth))+
-  facet_wrap(~Site + treatment)+
+                          aes(x = OC, y = HC, color = treatment))+
+  facet_wrap(~Site + depth)+
   labs(title = "Common Peaks")+
   theme_classic()
 
