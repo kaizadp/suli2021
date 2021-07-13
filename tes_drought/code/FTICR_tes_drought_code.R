@@ -251,6 +251,8 @@ gg_vankrev(data_hcoc, aes(x = OC, y = HC, color = Site))+
 
 # RA BAR Plotting ----
 
+library(ggplot2)
+
 RA = read.csv("tes_drought/data/Processed Data/Processed_FTICR_DATA/fticr_tes_drought_RA_trt.csv")
 
 RA %>%
@@ -275,7 +277,7 @@ RA %>%
   ggplot(aes(x = treatment, y = relabund2, fill = class))+
   geom_bar(stat = "identity")+
   #facet_wrap(~treatment + Site)+
-  facet_grid(Site ~ depth)+
+  facet_grid(depth ~ Site)+
   theme_classic()
 
 
@@ -313,6 +315,7 @@ pca_int = prcomp(num, scale. = T)
 plot(pca_int)
 
 ## split by depth
+
 RA_wide_0to5 = 
   RA_wide %>% 
   filter(depth == "0-5cm")
@@ -323,41 +326,32 @@ RA_wide_5toend =
 
 
 ## and then run PCA for each set
-num_0to5
-grp_0to5
-pca_int_0to5
 
-num_5toend
-grp_5toend
-pca_int_5toend
-  
+num_0to5 = 
+  RA_wide_0to5 %>%
+  dplyr::select(where(is.numeric))
 
+grp_0to5 = 
+  RA_wide_0to5 %>% 
+  dplyr::select(-where(is.numeric)) %>%
+  dplyr::mutate(row = row_number())
 
+pca_int_0to5 = prcomp(num_0to5, scale. = T)
+
+num_5toend = 
+  RA_wide_5toend %>%
+  dplyr::select(where(is.numeric))
+
+grp_5toend = 
+  RA_wide_5toend %>% 
+  dplyr::select(-where(is.numeric)) %>%
+  dplyr::mutate(row = row_number())
+
+pca_int_5toend = prcomp(num_5toend, scale. = T)
 
 # STATS - Biplots ----
 
 library(ggbiplot)
-
-ggbiplot(pca_int,
-         obs.scale = 1, var.scale = 1,
-         groups = as.character(grp$treatment), 
-         ellipse = TRUE, 
-         circle = FALSE, var.axes = TRUE, alpha = 0)+
-  geom_point(
-    aes(shape = grp$depth, color = groups),
-    size=2,stroke=1, alpha = 0.5)+
-  theme_classic()
-
-ggbiplot(pca_int,
-         obs.scale = 1, var.scale = 1,
-         groups = (grp$treatment), 
-         ellipse = TRUE, 
-         circle = FALSE, var.axes = TRUE, alpha = 0)+
-  geom_point(
-    aes(shape = as.character(grp$Site), color = groups),
-    size=2,stroke=1, alpha = 0.5)+
-  theme_classic()
-
 
 ggbiplot(pca_int,
          obs.scale = 1, var.scale = 1,
@@ -369,14 +363,23 @@ ggbiplot(pca_int,
     size=2,stroke=1, alpha = 0.5)+
   theme_classic()
 
-ggbiplot(pca_int,
+ggbiplot(pca_int_0to5,
          obs.scale = 1, var.scale = 1,
          groups = (grp$treatment), 
          ellipse = TRUE, 
          circle = FALSE, var.axes = TRUE, alpha = 0)+
-  facet_grid(~depth)+
   geom_point(
-    aes(shape = as.character(grp$Site)),
+    aes(shape = as.character(grp$Site), color = groups),
+    size=2,stroke=1, alpha = 0.5)+
+  theme_classic()
+
+ggbiplot(pca_int_5toend,
+         obs.scale = 1, var.scale = 1,
+         groups = (grp$treatment), 
+         ellipse = TRUE, 
+         circle = FALSE, var.axes = TRUE, alpha = 0)+
+  geom_point(
+    aes(shape = as.character(grp$Site), color = groups),
     size=2,stroke=1, alpha = 0.5)+
   theme_classic()
 
