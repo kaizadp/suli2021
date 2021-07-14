@@ -422,12 +422,35 @@ gg_vankrev <- function(data, mapping){
 }
 
 # give us unique peaks in each suction type ----
-
+## group by formula, depth, Site
+# this will return counts of 1 or 2. 1 = unique, 2 = common
+# for unique peaks, if unique to tzero = lost during drought, if unique to drought = gained during drought
 data_counts =  
   data_long_trt %>%
-  group_by(formula, depth, Site, treatment) %>% 
+  group_by(formula, depth, Site) %>% 
   dplyr::mutate(count = n()) %>% 
+  mutate(loss_gain = case_when(count == 1 & treatment == "timezero" ~ "lost",
+                               count == 1 & treatment == "drought" ~ "gained")) %>% 
   left_join(meta_hcoc)
+
+# plot common points
+data_counts %>% 
+  filter(count == 2) %>% 
+  #distinct(depth, Site, HC, OC) %>% 
+  gg_vankrev(aes(x = OC, y = HC))+
+  facet_grid(depth ~ Site)+
+  labs(title = "common peaks")+
+  theme_bw()
+
+# plot unique points
+data_counts %>% 
+  filter(count == 1) %>% 
+  gg_vankrev(aes(x = OC, y = HC, color = loss_gain))+
+  facet_grid(depth ~ Site)+
+  labs(title = "unique peaks")+
+  theme_bw()
+
+
 
 # compare treatment ----
 
