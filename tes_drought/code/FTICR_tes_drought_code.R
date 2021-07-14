@@ -450,46 +450,6 @@ data_counts %>%
   labs(title = "unique peaks")+
   theme_bw()
 
-
-
-# compare treatment ----
-
-data_treatment=  
-  data_long_trt %>%
-  group_by(formula, depth, Site) %>% 
-  dplyr::mutate(count = n()) %>% 
-  left_join(meta_hcoc)
-
-
-common_treatment = data_treatment %>%
-  filter(count > 1) %>%
-  distinct(formula, depth, Site, count, HC, OC)
-
-gg_treatment = gg_vankrev(data_treatment,
-                          aes(x = OC, y = HC, color = treatment))+
-  facet_wrap(~Site + depth)+
-  labs(title = "Common Peaks")+
-  theme_classic()
-
-gg_treatment
-
-#compare Site ----
-
-data_Site =  
-  data_long_trt %>%
-  group_by(formula, depth, treatment) %>% 
-  dplyr::mutate(count = n()) %>% 
-  left_join(meta_hcoc)# %>% filter(n==1)
-
-#compare depth
-
-data_depth=  
-  data_long_trt %>%
-  group_by(formula, Site, treatment) %>% 
-  dplyr::mutate(count = n()) %>% 
-  left_join(meta_hcoc)# %>% filter(n==1)
-
-
 # Combine Common and Unique Graphs into One
 
 library(patchwork)
