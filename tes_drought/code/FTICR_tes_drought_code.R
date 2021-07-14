@@ -391,7 +391,7 @@ ggbiplot(pca_int_5toend,
 library(vegan)
 
 adonis(RA_wide %>% dplyr::select(where(is.numeric)) ~
-         treatment + Site + depth + treatment:Site + treatment:depth + Site:depth, 
+         treatment + Site + depth + treatment:Site + treatment:depth + Site:depth + treatment:Site:depth, 
        data = RA_wide)
 
 
