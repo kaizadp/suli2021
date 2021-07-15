@@ -9,7 +9,10 @@ fticr_data = read.csv("tes_drought/data/fticr_data/fticr_data.csv")
 
 fticr_meta = read.csv("tes_drought/data/fticr_data/fticr_meta.csv")
 
-core_keys = read.csv("tes_drought/data/corekey.csv")
+core_keys = read.csv("tes_drought/data/corekey.csv") %>% filter(skip != "skip") %>% dplyr::select(-skip)
+
+SAMPLE_IDs = core_keys %>% pull(DOC_ID)
+
 
 #Renaming columns in the FTICR core_keys ----
 
@@ -113,7 +116,9 @@ fticr_data_long =
   # add the molecular formula column
   left_join(select(meta, Mass, formula), by = "Mass") %>% 
   # some formulae have multiple m/z. drop the multiples
-  distinct(DOC_ID, formula, presence)
+  distinct(DOC_ID, formula, presence) %>% 
+  filter(DOC_ID %in% SAMPLE_IDs)
+  
 
 #Merging fticr data and corekey ----
 
@@ -235,8 +240,7 @@ meta_hcoc = meta %>%
 
 data_hcoc =
   data_long_trt %>%
-  left_join(meta_hcoc) %>%
-  mutate(DOC_ID = as.character(DOC_ID))
+  left_join(meta_hcoc) 
 
 gg_vankrev(data_hcoc, aes(x = OC, y = HC, color = depth))+
   facet_grid(Site ~ treatment)+
