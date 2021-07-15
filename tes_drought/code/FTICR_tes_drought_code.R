@@ -317,73 +317,19 @@ grp =
 pca_int = prcomp(num, scale. = T)
 plot(pca_int)
 
-## split by depth
-
-RA_wide_0to5 = 
-  RA_wide %>% 
-  filter(depth == "0-5cm")
-
-RA_wide_5toend = 
-  RA_wide %>% 
-  filter(depth == "5cm-end")
-
-
-## and then run PCA for each set
-
-num_0to5 = 
-  RA_wide_0to5 %>%
-  dplyr::select(where(is.numeric))
-
-grp_0to5 = 
-  RA_wide_0to5 %>% 
-  dplyr::select(-where(is.numeric)) %>%
-  dplyr::mutate(row = row_number())
-
-pca_int_0to5 = prcomp(num_0to5, scale. = T)
-
-num_5toend = 
-  RA_wide_5toend %>%
-  dplyr::select(where(is.numeric))
-
-grp_5toend = 
-  RA_wide_5toend %>% 
-  dplyr::select(-where(is.numeric)) %>%
-  dplyr::mutate(row = row_number())
-
-pca_int_5toend = prcomp(num_5toend, scale. = T)
-
 ### plot PCA biplots ----
 ggbiplot(pca_int,
          obs.scale = 1, var.scale = 1,
-         groups = (grp$depth), 
+         groups = (grp$treatment), 
          ellipse = TRUE, 
          circle = FALSE, var.axes = TRUE, alpha = 0)+
   geom_point(
     aes(shape = as.character(grp$Site), color = groups),
-    size=2,stroke=1, alpha = 0.5)+
+    size=4,stroke=1, alpha = 0.8)+
+  labs(color = "Treatment", shape = "Site")+
   theme_classic()
 
-ggbiplot(pca_int_0to5,
-         obs.scale = 1, var.scale = 1,
-         groups = (grp_0to5$treatment), 
-         ellipse = TRUE, 
-         circle = FALSE, var.axes = TRUE, alpha = 0)+
-  geom_point(
-    aes(shape = as.character(grp_0to5$Site), color = groups),
-    size=2,stroke=1, alpha = 0.5)+
-  theme_classic()
-
-ggbiplot(pca_int_5toend,
-         obs.scale = 1, var.scale = 1,
-         groups = (grp_5toend$treatment), 
-         ellipse = TRUE, 
-         circle = FALSE, var.axes = TRUE, alpha = 0)+
-  geom_point(
-    aes(shape = as.character(grp_5toend$Site), color = groups),
-    size=2,stroke=1, alpha = 0.5)+
-  theme_classic()
-
-
+#
 ## b. PERMANOVA ----
 adonis(RA_wide %>% dplyr::select(where(is.numeric)) ~
          treatment + Site + depth + treatment:Site + treatment:depth + Site:depth + treatment:Site:depth, 
