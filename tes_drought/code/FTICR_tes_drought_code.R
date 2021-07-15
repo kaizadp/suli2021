@@ -225,7 +225,7 @@ data_long_trt = read.csv("tes_drought/data/Processed Data/Processed_FTICR_DATA/f
 meta = read.csv("tes_drought/data/Processed Data/Processed_FTICR_DATA/fticr_tes_drought_meta.csv")
 
 ## Processing Files for Plotting ----
-meta_HCOC = 
+meta_hcoc = 
   meta %>%
   select(formula, HC, OC) %>% 
   # there are some duplicate formulas, because multiple masses could have the same formula
@@ -237,16 +237,9 @@ data_hcoc =
   left_join(meta_hcoc) 
 
 ## VK plots ----
-gg_vankrev(data_hcoc, aes(x = OC, y = HC, color = depth))+
-  facet_grid(Site ~ treatment)+
-  theme_classic()
 
 gg_vankrev(data_hcoc, aes(x = OC, y = HC, color = treatment))+
-  facet_grid(Site ~ depth)+
-  theme_classic()
-
-gg_vankrev(data_hcoc, aes(x = OC, y = HC, color = Site))+
-  facet_grid(depth ~ treatment)+
+  facet_grid(. ~ Site)+
   theme_classic()
 
 
