@@ -191,7 +191,7 @@ RA_trt %>%
 
 
 ## RA_Output ----
-write.csv(RA_cores, "tes_drought/data/Processed Data/Processed_FTICR_DATA/fticr_tes_drought_RA_cores.csv", row.names=FALSE)
+write.csv(RA_cores, "tes_drought/data/Processed Data/Processed_FTICR_DATA/fticr_tes_drought_RA_core.csv", row.names=FALSE)
 write.csv(RA_trt, "tes_drought/data/Processed Data/Processed_FTICR_DATA/fticr_tes_drought_RA_trt.csv", row.names=FALSE)
 
 ##################################################################################  
@@ -289,7 +289,7 @@ data_counts %>%
 ###################################################################################
 
 # 4. STATS - Multivariate Graphs ----
-RA_cores = read.csv("tes_drought/data/Processed Data/Processed_FTICR_DATA/fticr_tes_drought_RA_cores.csv")
+RA_cores = read.csv("tes_drought/data/Processed Data/Processed_FTICR_DATA/fticr_tes_drought_RA_core.csv")
 
 ## STATS - Processing Data ----
 ## full dataset
