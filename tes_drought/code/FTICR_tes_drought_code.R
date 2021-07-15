@@ -23,47 +23,6 @@ core_keys = read.csv("tes_drought/data/corekey.csv") %>% filter(skip != "skip") 
 SAMPLE_IDs = core_keys %>% pull(DOC_ID)
 
 
-#Renaming columns in the FTICR core_keys ----
-
-fticr_data_renamed = rename(fticr_data,
-                            "DOC-001" = "Fansler_51618_DOC001_Alder_Inf_02Oct2020_300SA_IATp1_1_01_55581",
-                            "DOC-002" = "Fansler_51618_DOC002_Alder_Inf_02Oct2020_300SA_IATp1_1_01_55582",
-                            "DOC-003" = "Fansler_51618_DOC003_Alder_Inf_02Oct2020_300SA_IATp1_1_01_55583",
-                            "DOC-009" = "Fansler_51618_DOC009_Alder_Inf_02Oct2020_300SA_IATp1_1_01_55588",
-                            "DOC-073" = "Fansler_51618_DOC073_Alder_Inf_05Oct2020_300SA_IATp1_1_01_55723",
-                            "DOC-074" = "Fansler_51618_DOC074_Alder_Inf_05Oct2020_300SA_IATp1_1_01_55724",
-                            "DOC-075" = "Fansler_51618_DOC075_Alder_Inf_05Oct2020_300SA_IATp1_1_01_55725",
-                            "DOC-079" = "Fansler_51618_DOC079_Alder_Inf_05Oct2020_300SA_IATp1_1_01_55729",
-                            "DOC-080" = "Fansler_51618_DOC080_Alder_Inf_05Oct2020_300SA_IATp1_1_01_55730",
-                            "DOC-081" = "Fansler_51618_DOC081_Alder_Inf_05Oct2020_300SA_IATp1_1_01_55731",
-                            "DOC-177" = "Fansler_DOC_177_SPE_18Dec20_Alder_300SA_p1_1_01_57099",
-                            "DOC-178" = "Fansler_DOC_178_SPE_18Dec20_Alder_300SA_p1_1_01_57100",
-                            "DOC-179" = "Fansler_DOC_179_SPE_18Dec20_Alder_300SA_p1_1_01_57101",
-                            "DOC-180" = "Fansler_DOC_180_SPE_18Dec20_Alder_300SA_p1_1_01_57102",
-                            "DOC-185" = "Fansler_DOC_185_SPE_18Dec20_Alder_300SA_p1_1_01_57107",
-                            "DOC-186" = "Fansler_DOC_186_SPE_18Dec20_Alder_300SA_p1_1_01_57108",
-                            "DOC-187" = "Fansler_DOC_187_SPE_18Dec20_Alder_300SA_p1_1_01_57109",
-                            "DOC-037" = "Fansler_51618_DOC037_Alder_Inf_02Oct2020_300SA_IATp1_1_01_55617",
-                            "DOC-038" = "Fansler_51618_DOC038_Alder_Inf_02Oct2020_300SA_IATp1_1_01_55618",
-                            "DOC-039" = "Fansler_51618_DOC039_Alder_Inf_02Oct2020_300SA_IATp1_1_01_55619",
-                            "DOC-043" = "Fansler_51618_DOC043_Alder_Inf_02Oct2020_300SA_IATp1_1_01_55622",
-                            "DOC-044" = "Fansler_51618_DOC044_Alder_Inf_02Oct2020_300SA_IATp1_1_01_55625",
-                            "DOC-045" = "Fansler_51618_DOC045_Alder_Inf_02Oct2020_300SA_IATp1_1_01_55626",
-                            "DOC-107" = "Fansler_51618_DOC107_Alder_Inf_05Oct2020_300SA_IATp1_1_01_55760",
-                            "DOC-108" = "Fansler_51618_DOC108_Alder_Inf_05Oct2020_300SA_IATp1_1_01_55761",
-                            "DOC-109" = "Fansler_51618_DOC109_Alder_Inf_05Oct2020_300SA_IATp1_1_01_55762",
-                            "DOC-113" = "Fansler_51618_DOC113_Alder_Inf_05Oct2020_300SA_IATp1_1_01_55766",
-                            "DOC-114" = "Fansler_51618_DOC114_Alder_Inf_05Oct2020_300SA_IATp1_1_01_55767",
-                            "DOC-115" = "Fansler_51618_DOC115_Alder_Inf_05Oct2020_300SA_IATp1_1_01_55768",
-                            "DOC-181" = "Fansler_DOC_181_SPE_18Dec20_Alder_300SA_p1_1_01_57103",
-                            "DOC-182" = "Fansler_DOC_182_SPE_18Dec20_Alder_300SA_p1_1_01_57104",
-                            "DOC-183" = "Fansler_DOC_183_SPE_18Dec20_Alder_300SA_p1_1_01_57105",
-                            "DOC-184" = "Fansler_DOC_184_SPE_18Dec20_Alder_300SA_p1_1_01_57106",
-                            "DOC-188" = "Fansler_DOC_188_SPE_18Dec20_Alder_300SA_p1_1_01_57110",
-                            "DOC-189" = "Fansler_DOC_189_SPE_18Dec20_Alder_300SA_p1_1_01_57111",
-                            "DOC-190" = "Fansler_DOC_190_SPE_18Dec20_Alder_300SA_p1_1_01_57112")
-
-
 #fticr_tes_drought_meta processing ----
 
 meta = fticr_meta %>%
@@ -115,11 +74,16 @@ mass_list =
 #fticr_tes_drought_data_long ----
 
 fticr_data_long = 
-  fticr_data_renamed %>% 
+  fticr_data %>% 
   filter(Mass %in% mass_list) %>% 
   pivot_longer(-Mass,
-               names_to = "DOC_ID",
+               names_to = "FTICR_ID",
                values_to = "intensity") %>% 
+  # clean the FTICR_ID column
+  # extract strings that include "DOC" followed by a 3-digit number
+  mutate(DOC_ID = str_extract(FTICR_ID, "DOC[0-9]{3}"), 
+         DOC_ID = str_replace(DOC_ID, "DOC", "DOC-")) %>% 
+  dplyr::select(Mass, DOC_ID, intensity) %>% 
   mutate(presence = if_else(intensity>0, 1, 0)) %>% 
   filter(presence==1) %>% 
   # add the molecular formula column
