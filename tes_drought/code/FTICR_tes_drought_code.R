@@ -271,14 +271,19 @@ data_counts %>%
 data_counts %>% 
   filter(count == 1) %>% 
   gg_vankrev(aes(x = OC, y = HC, color = loss_gain))+
-  facet_grid(depth ~ Site)+
-  labs(title = "unique peaks")+
+  facet_grid(. ~ Site)+
+  labs(title = "peaks lost/gained after drought",
+       color = "")+
+  annotate("text", label = "aliphatic", x = 1.0, y = 1.8, fontface = "bold")+
+  annotate("text", label = "lignin-like", x = 1.0, y = 1.2, fontface = "bold")+
+  annotate("text", label = "aromatic", x = 1.0, y = 0.7, fontface = "bold")+
+  annotate("curve", xend = 1.0, x = 0.9, yend = 0.65, y = 0.55)+
+  annotate("text", label = "cond. aromatic", x = 1.0, y = 0.25, fontface = "bold")+
   theme_bw()
 
 # Combine Common and Unique Graphs into One
 
-
-gg_common / gg_unique
+# gg_common / gg_unique
 
 
 ###################################################################################
