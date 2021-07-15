@@ -87,7 +87,8 @@ fticr_data_long =
                values_to = "intensity") %>% 
   # clean the FTICR_ID column
   # extract strings that include "DOC" followed by a 3-digit number
-  mutate(DOC_ID = str_extract(FTICR_ID, "DOC[0-9]{3}"), 
+  mutate(FTICR_ID = str_replace(FTICR_ID, "DOC_", "DOC"),
+         DOC_ID = str_extract(FTICR_ID, "DOC[0-9]{3}"), 
          DOC_ID = str_replace(DOC_ID, "DOC", "DOC-")) %>% 
   dplyr::select(Mass, DOC_ID, intensity) %>% 
   mutate(presence = if_else(intensity>0, 1, 0)) %>% 
@@ -176,40 +177,21 @@ RA_trt =
                    relative_abundance = paste(relabund2, "\u00b1", se))
 
 ## RA BAR Plotting ----
-RA = read.csv("tes_drought/data/Processed Data/Processed_FTICR_DATA/fticr_tes_drought_RA_trt.csv")
-
-RA %>%
-  ggplot(aes(x = Site, y = relabund2, fill = class))+
-  geom_bar(stat = "identity")+
-  facet_wrap(~treatment + depth)+
-  theme_classic()
-
-RA %>%
-  # reorder treatments
-  mutate(treatment = factor(treatment, levels = c("timezero", "drought"))) %>% 
-  ggplot(aes(x = depth, y = relabund2, fill = class))+
-  geom_bar(stat = "identity")+
-  #facet_wrap(~treatment + Site)+
-  facet_grid(Site ~ treatment)+
-  theme_classic()
-
-
-RA %>%
+RA_trt %>%
   # reorder treatments
   mutate(treatment = factor(treatment, levels = c("timezero", "drought"))) %>% 
   ggplot(aes(x = treatment, y = relabund2, fill = class))+
   geom_bar(stat = "identity")+
-  #facet_wrap(~treatment + Site)+
-  facet_grid(depth ~ Site)+
+  labs(x = "",
+       y = "relative abundance, %")+
+  facet_grid(. ~ Site)+
   theme_classic()
 
 
 
 
 ## RA_Output ----
-
 write.csv(RA_cores, "tes_drought/data/Processed Data/Processed_FTICR_DATA/fticr_tes_drought_RA_cores.csv", row.names=FALSE)
-
 write.csv(RA_trt, "tes_drought/data/Processed Data/Processed_FTICR_DATA/fticr_tes_drought_RA_trt.csv", row.names=FALSE)
 
 ##################################################################################  
