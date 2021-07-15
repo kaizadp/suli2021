@@ -121,13 +121,7 @@ fticr_data_long_trt = fticr_data_long_key2 %>%
   group_by(depth, Site, treatment) %>%
   distinct(formula, presence)
 
-meta_HCOC = meta %>%
-  select(formula, HC, OC) %>% 
-  # there are some duplicate formulas, because multiple masses could have the same formula
-  # get rid of duplicates using distinct()
-  distinct()
-
-
+#
 # Processed Data_Outputs ----
 
 write.csv(meta, "tes_drought/data/Processed Data/Processed_FTICR_DATA/fticr_tes_drought_meta.csv", row.names = F)
@@ -176,6 +170,36 @@ write.csv(RA_cores, "tes_drought/data/Processed Data/Processed_FTICR_DATA/fticr_
 
 write.csv(RA_trt, "tes_drought/data/Processed Data/Processed_FTICR_DATA/fticr_tes_drought_RA_trt.csv", row.names=FALSE)
   
+# RA BAR Plotting ----
+RA = read.csv("tes_drought/data/Processed Data/Processed_FTICR_DATA/fticr_tes_drought_RA_trt.csv")
+
+RA %>%
+  ggplot(aes(x = Site, y = relabund2, fill = class))+
+  geom_bar(stat = "identity")+
+  facet_wrap(~treatment + depth)+
+  theme_classic()
+
+RA %>%
+  # reorder treatments
+  mutate(treatment = factor(treatment, levels = c("timezero", "drought"))) %>% 
+  ggplot(aes(x = depth, y = relabund2, fill = class))+
+  geom_bar(stat = "identity")+
+  #facet_wrap(~treatment + Site)+
+  facet_grid(Site ~ treatment)+
+  theme_classic()
+
+
+RA %>%
+  # reorder treatments
+  mutate(treatment = factor(treatment, levels = c("timezero", "drought"))) %>% 
+  ggplot(aes(x = treatment, y = relabund2, fill = class))+
+  geom_bar(stat = "identity")+
+  #facet_wrap(~treatment + Site)+
+  facet_grid(depth ~ Site)+
+  theme_classic()
+
+
+
 ##################################################################################  
 
 
@@ -207,8 +231,12 @@ data_long_trt = read.csv("tes_drought/data/Processed Data/Processed_FTICR_DATA/f
 meta = read.csv("tes_drought/data/Processed Data/Processed_FTICR_DATA/fticr_tes_drought_meta.csv")
 
 # Processing Files for Plotting ----
-meta_hcoc = meta %>%
-  dplyr::select(formula, HC, OC)
+meta_HCOC = 
+  meta %>%
+  select(formula, HC, OC) %>% 
+  # there are some duplicate formulas, because multiple masses could have the same formula
+  # get rid of duplicates using distinct()
+  distinct()
 
 data_hcoc =
   data_long_trt %>%
@@ -227,33 +255,63 @@ gg_vankrev(data_hcoc, aes(x = OC, y = HC, color = Site))+
   theme_classic()
 
 
-# RA BAR Plotting ----
-RA = read.csv("tes_drought/data/Processed Data/Processed_FTICR_DATA/fticr_tes_drought_RA_trt.csv")
+# 5. Unique Peaks ----
+# Load files ----
 
-RA %>%
-  ggplot(aes(x = Site, y = relabund2, fill = class))+
-  geom_bar(stat = "identity")+
-  facet_wrap(~treatment + depth)+
-  theme_classic()
+data_long_trt = read.csv("tes_drought/data/Processed Data/Processed_FTICR_DATA/fticr_tes_drought_data_long_trt.csv.gz")
+meta = read.csv("tes_drought/data/Processed Data/Processed_FTICR_DATA/fticr_tes_drought_meta.csv")
+meta_hcoc = meta %>%
+  dplyr::select(formula, HC, OC)
 
-RA %>%
-  # reorder treatments
-  mutate(treatment = factor(treatment, levels = c("timezero", "drought"))) %>% 
-  ggplot(aes(x = depth, y = relabund2, fill = class))+
-  geom_bar(stat = "identity")+
-  #facet_wrap(~treatment + Site)+
-  facet_grid(Site ~ treatment)+
-  theme_classic()
+# Graphic Function ----
 
+gg_vankrev <- function(data, mapping){
+  ggplot(data, mapping) +
+    geom_point(size=1, alpha=0.5) +
+    ylab("H/C") +
+    xlab("O/C") +
+    ylim(0,2.5) +
+    xlim(0,1.25) +
+    geom_segment(x = 0.0, y = 1.5, xend = 1.2, yend = 1.5, color="black",linetype="longdash") +
+    geom_segment(x = 0.0, y = 0.7, xend = 1.2, yend = 0.4, color="black",linetype="longdash") +
+    geom_segment(x = 0.0, y = 1.06, xend = 1.2, yend = 0.51, color="black",linetype="longdash") +
+    guides(colours = guide_legend(overrides.aes = list(alpha=1, size=2)))
+  
+}
 
-RA %>%
-  # reorder treatments
-  mutate(treatment = factor(treatment, levels = c("timezero", "drought"))) %>% 
-  ggplot(aes(x = treatment, y = relabund2, fill = class))+
-  geom_bar(stat = "identity")+
-  #facet_wrap(~treatment + Site)+
+# give us unique peaks in each suction type ----
+## group by formula, depth, Site
+# this will return counts of 1 or 2. 1 = unique, 2 = common
+# for unique peaks, if unique to tzero = lost during drought, if unique to drought = gained during drought
+data_counts =  
+  data_long_trt %>%
+  group_by(formula, depth, Site) %>% 
+  dplyr::mutate(count = n()) %>% 
+  mutate(loss_gain = case_when(count == 1 & treatment == "timezero" ~ "lost",
+                               count == 1 & treatment == "drought" ~ "gained")) %>% 
+  left_join(meta_hcoc)
+
+# plot common points
+data_counts %>% 
+  filter(count == 2) %>% 
+  #distinct(depth, Site, HC, OC) %>% 
+  gg_vankrev(aes(x = OC, y = HC))+
   facet_grid(depth ~ Site)+
-  theme_classic()
+  labs(title = "common peaks")+
+  theme_bw()
+
+# plot unique points
+data_counts %>% 
+  filter(count == 1) %>% 
+  gg_vankrev(aes(x = OC, y = HC, color = loss_gain))+
+  facet_grid(depth ~ Site)+
+  labs(title = "unique peaks")+
+  theme_bw()
+
+# Combine Common and Unique Graphs into One
+
+
+gg_common / gg_unique
 
 
 ###################################################################################
@@ -362,60 +420,3 @@ adonis(RA_wide %>% dplyr::select(where(is.numeric)) ~
        data = RA_wide)
 
 
-# 5. Unique Peaks ----
-# Load files ----
-
-data_long_trt = read.csv("tes_drought/data/Processed Data/Processed_FTICR_DATA/fticr_tes_drought_data_long_trt.csv.gz")
-meta = read.csv("tes_drought/data/Processed Data/Processed_FTICR_DATA/fticr_tes_drought_meta.csv")
-meta_hcoc = meta %>%
-  dplyr::select(formula, HC, OC)
-
-# Graphic Function ----
-
-gg_vankrev <- function(data, mapping){
-  ggplot(data, mapping) +
-    geom_point(size=1, alpha=0.5) +
-    ylab("H/C") +
-    xlab("O/C") +
-    ylim(0,2.5) +
-    xlim(0,1.25) +
-    geom_segment(x = 0.0, y = 1.5, xend = 1.2, yend = 1.5, color="black",linetype="longdash") +
-    geom_segment(x = 0.0, y = 0.7, xend = 1.2, yend = 0.4, color="black",linetype="longdash") +
-    geom_segment(x = 0.0, y = 1.06, xend = 1.2, yend = 0.51, color="black",linetype="longdash") +
-    guides(colours = guide_legend(overrides.aes = list(alpha=1, size=2)))
-  
-}
-
-# give us unique peaks in each suction type ----
-## group by formula, depth, Site
-# this will return counts of 1 or 2. 1 = unique, 2 = common
-# for unique peaks, if unique to tzero = lost during drought, if unique to drought = gained during drought
-data_counts =  
-  data_long_trt %>%
-  group_by(formula, depth, Site) %>% 
-  dplyr::mutate(count = n()) %>% 
-  mutate(loss_gain = case_when(count == 1 & treatment == "timezero" ~ "lost",
-                               count == 1 & treatment == "drought" ~ "gained")) %>% 
-  left_join(meta_hcoc)
-
-# plot common points
-data_counts %>% 
-  filter(count == 2) %>% 
-  #distinct(depth, Site, HC, OC) %>% 
-  gg_vankrev(aes(x = OC, y = HC))+
-  facet_grid(depth ~ Site)+
-  labs(title = "common peaks")+
-  theme_bw()
-
-# plot unique points
-data_counts %>% 
-  filter(count == 1) %>% 
-  gg_vankrev(aes(x = OC, y = HC, color = loss_gain))+
-  facet_grid(depth ~ Site)+
-  labs(title = "unique peaks")+
-  theme_bw()
-
-# Combine Common and Unique Graphs into One
-
-
-gg_common / gg_unique
