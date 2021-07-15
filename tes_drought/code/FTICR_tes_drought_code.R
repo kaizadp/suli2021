@@ -1,6 +1,15 @@
+## TES Drought -- FTICR data analysis
+## Summer 2021
 
+
+# Step 0: LOAD THE PACKAGES -----------------------------------------------
+## run this portion before doing anything else.
 library(tidyverse)
+library(ggbiplot)
+library(vegan)
+library(patchwork)
 
+#
 # 1. PRocessing TES Drought Data 
 
 #Loading Files ----
@@ -234,10 +243,6 @@ data_long_trt = read.csv("tes_drought/data/Processed Data/Processed_FTICR_DATA/f
 meta = read.csv("tes_drought/data/Processed Data/Processed_FTICR_DATA/fticr_tes_drought_meta.csv")
 
 # Processing Files for Plotting ----
-
-library(tidyverse)
-
-
 meta_hcoc = meta %>%
   dplyr::select(formula, HC, OC)
 
@@ -259,9 +264,6 @@ gg_vankrev(data_hcoc, aes(x = OC, y = HC, color = Site))+
 
 
 # RA BAR Plotting ----
-
-library(ggplot2)
-
 RA = read.csv("tes_drought/data/Processed Data/Processed_FTICR_DATA/fticr_tes_drought_RA_trt.csv")
 
 RA %>%
@@ -293,10 +295,6 @@ RA %>%
 ###################################################################################
 
 # 4. STATS - Multivariate Graphs ----
-
-library(dplyr)
-library(tidyr)
-
 RA_cores = read.csv("tes_drought/data/Processed Data/Processed_FTICR_DATA/fticr_tes_drought_RA_cores.csv")
 
 # STATS - Processing Data ----
@@ -360,7 +358,6 @@ pca_int_5toend = prcomp(num_5toend, scale. = T)
 
 # STATS - Biplots ----
 
-library(ggbiplot)
 
 ggbiplot(pca_int,
          obs.scale = 1, var.scale = 1,
@@ -395,7 +392,6 @@ ggbiplot(pca_int_5toend,
 
 # STATS - PERMONVA ----
 
-library(vegan)
 
 adonis(RA_wide %>% dplyr::select(where(is.numeric)) ~
          treatment + Site + depth + treatment:Site + treatment:depth + Site:depth + treatment:Site:depth, 
@@ -404,8 +400,6 @@ adonis(RA_wide %>% dplyr::select(where(is.numeric)) ~
 
 # 5. Unique Peaks ----
 # Load files ----
-
-library(tidyverse)
 
 data_long_trt = read.csv("tes_drought/data/Processed Data/Processed_FTICR_DATA/fticr_tes_drought_data_long_trt.csv.gz")
 meta = read.csv("tes_drought/data/Processed Data/Processed_FTICR_DATA/fticr_tes_drought_meta.csv")
@@ -459,6 +453,5 @@ data_counts %>%
 
 # Combine Common and Unique Graphs into One
 
-library(patchwork)
 
 gg_common / gg_unique
