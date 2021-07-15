@@ -12,7 +12,10 @@ library(patchwork)
 #
 # 1. PRocessing TES Drought Data 
 
-#Loading Files ----
+#####################################################################################
+
+# 1. Processing the data --------------------------------------------------
+## Load Files ----
 
 fticr_data = read.csv("tes_drought/data/fticr_data/fticr_data.csv")
 
@@ -20,10 +23,11 @@ fticr_meta = read.csv("tes_drought/data/fticr_data/fticr_meta.csv")
 
 core_keys = read.csv("tes_drought/data/corekey.csv") %>% filter(skip != "skip") %>% dplyr::select(-skip)
 
+# create a vector of just the sample IDs, will be used later
 SAMPLE_IDs = core_keys %>% pull(DOC_ID)
 
 
-#fticr_tes_drought_meta processing ----
+## Process meta ----
 
 meta = fticr_meta %>%
   
@@ -71,7 +75,9 @@ meta = fticr_meta %>%
 mass_list = 
   meta %>% pull(Mass)
 
-#fticr_tes_drought_data_long ----
+## Process data ----
+
+### a. make long-form ----
 
 fticr_data_long = 
   fticr_data %>% 
@@ -93,7 +99,7 @@ fticr_data_long =
   filter(DOC_ID %in% SAMPLE_IDs)
   
 
-#Merging fticr data and corekey ----
+### b. Merging fticr data and corekey ----
 
 fticr_data_long_key =
   fticr_data_long %>%
@@ -101,28 +107,33 @@ fticr_data_long_key =
   group_by(depth, Site, treatment, formula) %>%
   mutate(n = n())
 
-#Rep Filter ----
+### c. Rep Filter ----
 
-reps = fticr_data_long_key %>%
+reps = 
+  fticr_data_long_key %>%
   ungroup() %>%
   distinct(DOC_ID, depth, Site, treatment) %>%
   group_by(depth, Site, treatment) %>%
   dplyr::summarise(reps = n())
 
-fticr_data_long_key2 = fticr_data_long_key %>%
+fticr_data_long_key2 = 
+  fticr_data_long_key %>%
   left_join(reps) %>%
   ungroup() %>%
   mutate(keep = n >= (2/3)*reps) %>%
   filter(keep)
 
+### d. peaks present by treatment ----
+
 # create a "summary dataframe" of formulas present per treatment type
 # group by depth, Site, treatment
-fticr_data_long_trt = fticr_data_long_key2 %>%
+fticr_data_long_trt = 
+  fticr_data_long_key2 %>%
   group_by(depth, Site, treatment) %>%
   distinct(formula, presence)
 
 #
-# Processed Data_Outputs ----
+### e. Processed Data_Outputs ----
 
 write.csv(meta, "tes_drought/data/Processed Data/Processed_FTICR_DATA/fticr_tes_drought_meta.csv", row.names = F)
 
@@ -132,20 +143,22 @@ crunch::write.csv.gz(fticr_data_long_key2, "tes_drought/data/Processed Data/Proc
 
 crunch::write.csv.gz(fticr_data_long_trt, "tes_drought/data/Processed Data/Processed_FTICR_DATA/fticr_tes_drought_data_long_trt.csv.gz", row.names = F, na="")
 
-
+#
 #####################################################################################
 
-# 2. Relative Abundance (RA) 
+# 2. Relative Abundance (RA) ----
 
-# RA_Load files ----
+## RA_Load files ----
 
 fticr_data_key = read.csv("tes_drought/data/Processed Data/Processed_FTICR_DATA/fticr_tes_drought_data_long_key.csv.gz")
 
 fticr_meta = read.csv("tes_drought/data/Processed Data/Processed_FTICR_DATA/fticr_tes_drought_meta.csv")
 
-# RA Calculation ----
+## RA Calculation ----
 
-RA_cores = fticr_data_key %>%
+# RA by core
+RA_cores = 
+  fticr_data_key %>%
   left_join(dplyr::select(fticr_meta, formula, class), by = "formula") %>%
   group_by(DOC_ID, depth, Site, treatment, class) %>%
   dplyr::summarise(abund = sum(presence)) %>%
@@ -154,23 +167,15 @@ RA_cores = fticr_data_key %>%
   group_by(DOC_ID) %>%
   dplyr::mutate(total = sum(abund), relabund = round((abund/total)*100,2))
 
-# Calculating Mean RA ----
-
-RA_trt = RA_cores %>%
+# RA summary (mean, se) per treatment
+RA_trt = 
+  RA_cores %>%
   group_by(depth, Site, treatment, class) %>%
   dplyr::summarize(relabund2 = mean(relabund),
-                   
                    se = sd(relabund/sqrt(n())),
-                   
                    relative_abundance = paste(relabund2, "\u00b1", se))
 
-# RA_Output ----
-
-write.csv(RA_cores, "tes_drought/data/Processed Data/Processed_FTICR_DATA/fticr_tes_drought_RA_cores.csv", row.names=FALSE)
-
-write.csv(RA_trt, "tes_drought/data/Processed Data/Processed_FTICR_DATA/fticr_tes_drought_RA_trt.csv", row.names=FALSE)
-  
-# RA BAR Plotting ----
+## RA BAR Plotting ----
 RA = read.csv("tes_drought/data/Processed Data/Processed_FTICR_DATA/fticr_tes_drought_RA_trt.csv")
 
 RA %>%
@@ -200,11 +205,19 @@ RA %>%
 
 
 
+
+## RA_Output ----
+
+write.csv(RA_cores, "tes_drought/data/Processed Data/Processed_FTICR_DATA/fticr_tes_drought_RA_cores.csv", row.names=FALSE)
+
+write.csv(RA_trt, "tes_drought/data/Processed Data/Processed_FTICR_DATA/fticr_tes_drought_RA_trt.csv", row.names=FALSE)
+
 ##################################################################################  
 
 
-# 3. Van Krevelen Plot ----
+# 3. Van Krevelen Plots ----
 
+## gg_vankrev function for plots ----
 gg_vankrev <- function(data,mapping){
   ggplot(data,mapping) +
     # plot points
@@ -223,14 +236,13 @@ gg_vankrev <- function(data,mapping){
   
 }
 
-
-# Loading Files ----
+## Loading Files ----
 
 data_long_trt = read.csv("tes_drought/data/Processed Data/Processed_FTICR_DATA/fticr_tes_drought_data_long_trt.csv.gz")
 
 meta = read.csv("tes_drought/data/Processed Data/Processed_FTICR_DATA/fticr_tes_drought_meta.csv")
 
-# Processing Files for Plotting ----
+## Processing Files for Plotting ----
 meta_HCOC = 
   meta %>%
   select(formula, HC, OC) %>% 
@@ -242,6 +254,7 @@ data_hcoc =
   data_long_trt %>%
   left_join(meta_hcoc) 
 
+## VK plots ----
 gg_vankrev(data_hcoc, aes(x = OC, y = HC, color = depth))+
   facet_grid(Site ~ treatment)+
   theme_classic()
@@ -255,31 +268,9 @@ gg_vankrev(data_hcoc, aes(x = OC, y = HC, color = Site))+
   theme_classic()
 
 
-# 5. Unique Peaks ----
-# Load files ----
+## 3b. Unique Peaks ----
+### calculate common vs. unique peaks by treatment ----
 
-data_long_trt = read.csv("tes_drought/data/Processed Data/Processed_FTICR_DATA/fticr_tes_drought_data_long_trt.csv.gz")
-meta = read.csv("tes_drought/data/Processed Data/Processed_FTICR_DATA/fticr_tes_drought_meta.csv")
-meta_hcoc = meta %>%
-  dplyr::select(formula, HC, OC)
-
-# Graphic Function ----
-
-gg_vankrev <- function(data, mapping){
-  ggplot(data, mapping) +
-    geom_point(size=1, alpha=0.5) +
-    ylab("H/C") +
-    xlab("O/C") +
-    ylim(0,2.5) +
-    xlim(0,1.25) +
-    geom_segment(x = 0.0, y = 1.5, xend = 1.2, yend = 1.5, color="black",linetype="longdash") +
-    geom_segment(x = 0.0, y = 0.7, xend = 1.2, yend = 0.4, color="black",linetype="longdash") +
-    geom_segment(x = 0.0, y = 1.06, xend = 1.2, yend = 0.51, color="black",linetype="longdash") +
-    guides(colours = guide_legend(overrides.aes = list(alpha=1, size=2)))
-  
-}
-
-# give us unique peaks in each suction type ----
 ## group by formula, depth, Site
 # this will return counts of 1 or 2. 1 = unique, 2 = common
 # for unique peaks, if unique to tzero = lost during drought, if unique to drought = gained during drought
@@ -291,6 +282,7 @@ data_counts =
                                count == 1 & treatment == "drought" ~ "gained")) %>% 
   left_join(meta_hcoc)
 
+### unique/common VK plots ----
 # plot common points
 data_counts %>% 
   filter(count == 2) %>% 
@@ -319,9 +311,9 @@ gg_common / gg_unique
 # 4. STATS - Multivariate Graphs ----
 RA_cores = read.csv("tes_drought/data/Processed Data/Processed_FTICR_DATA/fticr_tes_drought_RA_cores.csv")
 
-# STATS - Processing Data ----
+## STATS - Processing Data ----
 ## full dataset
-RA_wide=
+RA_wide =
   RA_cores %>%
   ungroup %>% 
   dplyr::select(-c(abund, total)) %>% 
@@ -331,6 +323,8 @@ RA_wide=
   replace(.,is.na(.),0)  %>% 
   dplyr::select(-1)
 
+## a. PCA ----
+### compute PCA ----
 num = 
   RA_wide %>%
   dplyr::select(where(is.numeric))
@@ -378,9 +372,7 @@ grp_5toend =
 
 pca_int_5toend = prcomp(num_5toend, scale. = T)
 
-# STATS - Biplots ----
-
-
+### plot PCA biplots ----
 ggbiplot(pca_int,
          obs.scale = 1, var.scale = 1,
          groups = (grp$depth), 
@@ -412,11 +404,7 @@ ggbiplot(pca_int_5toend,
   theme_classic()
 
 
-# STATS - PERMONVA ----
-
-
+## b. PERMANOVA ----
 adonis(RA_wide %>% dplyr::select(where(is.numeric)) ~
          treatment + Site + depth + treatment:Site + treatment:depth + Site:depth + treatment:Site:depth, 
        data = RA_wide)
-
-
