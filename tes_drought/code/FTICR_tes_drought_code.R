@@ -331,6 +331,5 @@ ggbiplot(pca_int,
 
 #
 ## b. PERMANOVA ----
-adonis(RA_wide %>% dplyr::select(where(is.numeric)) ~
-         treatment + Site + depth + treatment:Site + treatment:depth + Site:depth + treatment:Site:depth, 
+adonis(RA_wide %>% dplyr::select(where(is.numeric)) ~ treatment * Site, 
        data = RA_wide)
