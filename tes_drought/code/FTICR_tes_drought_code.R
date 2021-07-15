@@ -149,7 +149,10 @@ fticr_data_long_trt = fticr_data_long_key2 %>%
   distinct(formula, presence)
 
 meta_HCOC = meta %>%
-  select(formula, HC, OC)
+  select(formula, HC, OC) %>% 
+  # there are some duplicate formulas, because multiple masses could have the same formula
+  # get rid of duplicates using distinct()
+  distinct()
 
 
 # Processed Data_Outputs ----
