@@ -273,6 +273,7 @@ data_counts =
                                count == 1 & treatment == "drought" ~ "gained")) %>% 
   left_join(meta_hcoc)
 
+### calculate summary of unique peaks, including relative abundance ----
 ### unique/common VK plots ----
 # plot common points
 data_counts %>% 
