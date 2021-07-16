@@ -197,14 +197,40 @@ RA_trt %>%
 data_c_aliph = 
   RA_cores %>% filter(Site == "CPCRW" & class == "aliphatic")
 
+data_c_ar = 
+  RA_cores %>% filter(Site == "CPCRW" & class == "aromatic")
+
+data_c_ca = 
+  RA_cores %>% filter(Site == "CPCRW" & class == "condensed_arom")
+
+data_c_ul = 
+  RA_cores %>% filter(Site == "CPCRW" & class == "unsaturated/lignin")
+
+
+
 data_s_aliph = 
   RA_cores %>% filter(Site == "SR" & class == "aliphatic")
+
+data_s_ar = 
+  RA_cores %>% filter(Site == "SR" & class == "aromatic")
+
+data_s_ca = 
+  RA_cores %>% filter(Site == "SR" & class == "condensed_arom")
+
+data_s_ul = 
+  RA_cores %>% filter(Site == "SR" & class == "unsaturated/lignin")
 
 ## then, run aov() for each subset to determine if treatment (drought) 
 ## had a significant effect on the relative abundance
 aov(relabund ~ treatment, data = data_c_aliph) %>% summary()
-aov(relabund ~ treatment, data = data_s_aliph) %>% summary()
+aov(relabund ~ treatment, data = data_c_ar) %>% summary()
+aov(relabund ~ treatment, data = data_c_ca) %>% summary()
+aov(relabund ~ treatment, data = data_c_ul) %>% summary()
 
+aov(relabund ~ treatment, data = data_s_aliph) %>% summary()
+aov(relabund ~ treatment, data = data_s_ar) %>% summary()
+aov(relabund ~ treatment, data = data_s_ca) %>% summary()
+aov(relabund ~ treatment, data = data_s_ul) %>% summary()
 
 ## RA_Output ----
 write.csv(RA_cores, "tes_drought/data/Processed Data/Processed_FTICR_DATA/fticr_tes_drought_RA_core.csv", row.names=FALSE)
@@ -298,9 +324,25 @@ data_counts %>%
   annotate("text", label = "cond. aromatic", x = 1.0, y = 0.25, fontface = "bold")+
   theme_bw()
 
-# Combine Common and Unique Graphs into One
+# % Contribution of Unique Peaks
 
-# gg_common / gg_unique
+RA_unique = 
+  fticr_data_key %>%
+  left_join(dplyr::select(fticr_meta, formula, class), by = "formula") %>%
+  group_by(DOC_ID, depth, Site, treatment, class) %>%
+  dplyr::summarise(abund = sum(presence)) %>%
+  filter(!is.na(class)) %>%
+  ungroup %>%
+  group_by(DOC_ID) %>%
+  dplyr::mutate(total = sum(abund), relabund = round((abund/total)*100,2))
+
+# RA unique peak summary (mean, se) per class
+RA_trt = 
+  RA_cores %>%
+  group_by(depth, Site, treatment, class) %>%
+  dplyr::summarize(relabund2 = mean(relabund),
+                   se = sd(relabund/sqrt(n())),
+                   relative_abundance = paste(relabund2, "\u00b1", se))
 
 
 ###################################################################################
