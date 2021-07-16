@@ -190,6 +190,22 @@ RA_trt %>%
 
 
 
+## RA stats per group ----
+## compute ANOVA for each class/Site, for the bar graphs
+
+## first, create subsets of each site/class combination
+data_c_aliph = 
+  RA_cores %>% filter(Site == "CPCRW" & class == "aliphatic")
+
+data_s_aliph = 
+  RA_cores %>% filter(Site == "SR" & class == "aliphatic")
+
+## then, run aov() for each subset to determine if treatment (drought) 
+## had a significant effect on the relative abundance
+aov(relabund ~ treatment, data = data_c_aliph) %>% summary()
+aov(relabund ~ treatment, data = data_s_aliph) %>% summary()
+
+
 ## RA_Output ----
 write.csv(RA_cores, "tes_drought/data/Processed Data/Processed_FTICR_DATA/fticr_tes_drought_RA_core.csv", row.names=FALSE)
 write.csv(RA_trt, "tes_drought/data/Processed Data/Processed_FTICR_DATA/fticr_tes_drought_RA_trt.csv", row.names=FALSE)
