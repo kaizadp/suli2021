@@ -300,6 +300,24 @@ data_counts =
   left_join(meta_hcoc)
 
 ### calculate summary of unique peaks, including relative abundance ----
+
+# create a new temp meta-file for formula and class
+meta_class = 
+  meta %>% 
+  dplyr::select(formula, class) %>% 
+  distinct()
+
+unique_peaks_summary = 
+  data_counts %>% 
+  filter(count == 1) %>% 
+  left_join(meta_class) %>% 
+  group_by(Site, depth, loss_gain, class) %>% 
+  dplyr::summarise(n = n()) %>% 
+  group_by(Site, depth, loss_gain) %>% 
+  dplyr::mutate(total = sum(n),
+                percent = (n/total)*100,
+                percent = round(percent, 2))
+
 ### unique/common VK plots ----
 # plot common points
 data_counts %>% 
