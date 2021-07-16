@@ -318,6 +318,8 @@ unique_peaks_summary =
                 percent = (n/total)*100,
                 percent = round(percent, 2))
 
+write.csv(unique_peaks_summary, "tes_drought/data/Processed Data/Processed_FTICR_DATA/fticr_unique_peaks_summary.csv", row.names=FALSE)
+
 ### unique/common VK plots ----
 # plot common points
 data_counts %>% 
@@ -341,26 +343,6 @@ data_counts %>%
   annotate("curve", xend = 1.0, x = 0.9, yend = 0.65, y = 0.55)+
   annotate("text", label = "cond. aromatic", x = 1.0, y = 0.25, fontface = "bold")+
   theme_bw()
-
-# % Contribution of Unique Peaks
-
-RA_unique = 
-  fticr_data_key %>%
-  left_join(dplyr::select(fticr_meta, formula, class), by = "formula") %>%
-  group_by(DOC_ID, depth, Site, treatment, class) %>%
-  dplyr::summarise(abund = sum(presence)) %>%
-  filter(!is.na(class)) %>%
-  ungroup %>%
-  group_by(DOC_ID) %>%
-  dplyr::mutate(total = sum(abund), relabund = round((abund/total)*100,2))
-
-# RA unique peak summary (mean, se) per class
-RA_trt = 
-  RA_cores %>%
-  group_by(depth, Site, treatment, class) %>%
-  dplyr::summarize(relabund2 = mean(relabund),
-                   se = sd(relabund/sqrt(n())),
-                   relative_abundance = paste(relabund2, "\u00b1", se))
 
 
 ###################################################################################

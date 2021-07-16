@@ -1,0 +1,17 @@
+"Site","depth","loss_gain","class","n","total","percent"
+"CPCRW","5cm-end","gained","aliphatic",290,1299,22.32
+"CPCRW","5cm-end","gained","aromatic",273,1299,21.02
+"CPCRW","5cm-end","gained","condensed_arom",142,1299,10.93
+"CPCRW","5cm-end","gained","unsaturated/lignin",594,1299,45.73
+"CPCRW","5cm-end","lost","aliphatic",368,613,60.03
+"CPCRW","5cm-end","lost","aromatic",32,613,5.22
+"CPCRW","5cm-end","lost","condensed_arom",40,613,6.53
+"CPCRW","5cm-end","lost","unsaturated/lignin",173,613,28.22
+"SR","5cm-end","gained","aliphatic",283,1938,14.6
+"SR","5cm-end","gained","aromatic",452,1938,23.32
+"SR","5cm-end","gained","condensed_arom",243,1938,12.54
+"SR","5cm-end","gained","unsaturated/lignin",960,1938,49.54
+"SR","5cm-end","lost","aliphatic",344,552,62.32
+"SR","5cm-end","lost","aromatic",26,552,4.71
+"SR","5cm-end","lost","condensed_arom",26,552,4.71
+"SR","5cm-end","lost","unsaturated/lignin",156,552,28.26
