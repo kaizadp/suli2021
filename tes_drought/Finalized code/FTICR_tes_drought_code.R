@@ -185,9 +185,12 @@ RA_trt %>%
   labs(x = "",
        y = "relative abundance, %")+
   facet_grid(. ~ Site)+
-  theme_classic()
-
-
+  theme_classic()+
+  theme(legend.title = element_text(size=20),
+        legend.text = element_text(size=20),
+        text=element_text(size=20),
+        axis.text=element_text(size=15),
+        axis.title=element_text(size=15))
 
 
 ## RA stats per group ----
@@ -342,7 +345,13 @@ data_counts %>%
   annotate("text", label = "aromatic", x = 1.0, y = 0.7, fontface = "bold")+
   annotate("curve", xend = 1.0, x = 0.9, yend = 0.65, y = 0.55)+
   annotate("text", label = "cond. aromatic", x = 1.0, y = 0.25, fontface = "bold")+
-  theme_bw()
+  theme_classic()+
+  theme(text = element_text(size=15),
+        legend.title = element_text(size=15),
+        legend.text = element_text(size=15),
+        axis.text=element_text(size=15),
+        axis.title=element_text(size=15),
+        plot.title = element_text(size=15))
 
 
 ###################################################################################
@@ -384,9 +393,14 @@ ggbiplot(pca_int,
          circle = FALSE, var.axes = TRUE, alpha = 0)+
   geom_point(
     aes(shape = as.character(grp$Site), color = groups),
-    size=4,stroke=1, alpha = 0.8)+
+    size=2,stroke=2, alpha = .5)+
   labs(color = "Treatment", shape = "Site")+
-  theme_classic()
+  theme_classic()+
+  theme(text = element_text(size=15),
+        legend.title = element_text(size=15),
+                legend.text = element_text(size=15),
+                axis.text=element_text(size=15),
+                axis.title=element_text(size=15))
 
 #
 ## b. PERMANOVA ----
